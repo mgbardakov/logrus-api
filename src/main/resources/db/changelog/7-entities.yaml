@@ -1,0 +1,104 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7-create-entities
+      author: logrus
+      changes:
+        - createTable:
+            tableName: entities
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: entity_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: normalized_name
+                  type: text
+              - column:
+                  name: external_id
+                  type: varchar(255)
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE entities ADD CONSTRAINT chk_entities_entity_type CHECK (entity_type in ('PERSON', 'AGENCY', 'REGION', 'ORGANIZATION', 'DOCUMENT', 'OTHER'));
+        - createIndex:
+            tableName: entities
+            indexName: idx_entities_type_normalized_name
+            columns:
+              - column:
+                  name: entity_type
+              - column:
+                  name: normalized_name
+
+  - changeSet:
+      id: 7-create-event-entities
+      author: logrus
+      changes:
+        - createTable:
+            tableName: event_entities
+            columns:
+              - column:
+                  name: event_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_event_entities_event
+                    references: events(id)
+              - column:
+                  name: entity_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_event_entities_entity
+                    references: entities(id)
+              - column:
+                  name: role
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: event_entities
+            columnNames: event_id, entity_id, role
+            constraintName: pk_event_entities
+        - sql:
+            sql: ALTER TABLE event_entities ADD CONSTRAINT chk_event_entities_role CHECK (role in ('ACTOR', 'AGENCY', 'MENTIONED', 'SUBJECT', 'REGION'));
+        - createIndex:
+            tableName: event_entities
+            indexName: idx_event_entities_entity_id
+            columns:
+              - column:
+                  name: entity_id

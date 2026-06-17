@@ -49,3 +49,32 @@ On Windows:
 
 - `local` - local development defaults;
 - `test` - automated test defaults.
+
+## Local Database
+
+The `local` profile expects PostgreSQL from the workspace Docker Compose infrastructure:
+
+```text
+jdbc:postgresql://localhost:5432/logrus
+user: logrus
+password: logrus
+```
+
+Liquibase changelog:
+
+```text
+classpath:db/changelog/db.changelog-master.yaml
+```
+
+On application startup, Liquibase creates the Phase 1 schema and required extensions (`pgcrypto`, `vector`) when available.
+
+## Testcontainers
+
+Database integration tests use `pgvector/pgvector:pg16` through Testcontainers.
+
+For Docker Desktop on Windows with Docker Engine 29, test resources pin Docker Java API compatibility through:
+
+```text
+src/test/resources/docker-java.properties
+src/test/resources/testcontainers.properties
+```

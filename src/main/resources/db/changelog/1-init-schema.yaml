@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-init-extensions
+      author: logrus
+      changes:
+        - sql:
+            splitStatements: true
+            stripComments: true
+            sql: |
+              CREATE EXTENSION IF NOT EXISTS pgcrypto;
+              CREATE EXTENSION IF NOT EXISTS vector;

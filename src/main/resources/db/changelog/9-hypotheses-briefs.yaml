@@ -1,0 +1,152 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9-create-analytical-hypotheses
+      author: logrus
+      changes:
+        - createTable:
+            tableName: analytical_hypotheses
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: topic_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_analytical_hypotheses_topic
+                    references: topics(id)
+              - column:
+                  name: title
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: summary
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confidence
+                  type: numeric(5,4)
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE analytical_hypotheses ADD CONSTRAINT chk_analytical_hypotheses_status CHECK (status in ('DRAFT', 'REVIEW_REQUIRED', 'PUBLISHED', 'REJECTED'));
+        - createIndex:
+            tableName: analytical_hypotheses
+            indexName: idx_analytical_hypotheses_topic_id
+            columns:
+              - column:
+                  name: topic_id
+
+  - changeSet:
+      id: 9-create-briefs
+      author: logrus
+      changes:
+        - createTable:
+            tableName: briefs
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: topic_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_briefs_topic
+                    references: topics(id)
+              - column:
+                  name: period_start
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: period_end
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: summary
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: generated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: timestamptz
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE briefs ADD CONSTRAINT chk_briefs_status CHECK (status in ('DRAFT', 'REVIEW_REQUIRED', 'PUBLISHED', 'ARCHIVED'));
+        - createIndex:
+            tableName: briefs
+            indexName: idx_briefs_topic_period
+            columns:
+              - column:
+                  name: topic_id
+              - column:
+                  name: period_start
+              - column:
+                  name: period_end

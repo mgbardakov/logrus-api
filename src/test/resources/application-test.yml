@@ -1,7 +1,13 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration
   config:
     activate:
       on-profile: test
+  liquibase:
+    enabled: false
 
 logging:
   level:

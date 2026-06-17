@@ -1,0 +1,173 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4-create-raw-snapshots
+      author: logrus
+      changes:
+        - createTable:
+            tableName: raw_snapshots
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_raw_snapshots_source
+                    references: sources(id)
+              - column:
+                  name: source_url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content_type
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: object_key
+                  type: text
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: content_hash
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fetched_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: http_status
+                  type: integer
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: raw_snapshots
+            indexName: idx_raw_snapshots_source_id
+            columns:
+              - column:
+                  name: source_id
+        - createIndex:
+            tableName: raw_snapshots
+            indexName: idx_raw_snapshots_content_hash
+            columns:
+              - column:
+                  name: content_hash
+
+  - changeSet:
+      id: 4-create-documents
+      author: logrus
+      changes:
+        - createTable:
+            tableName: documents
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_documents_source
+                    references: sources(id)
+              - column:
+                  name: raw_snapshot_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_documents_raw_snapshot
+                    references: raw_snapshots(id)
+              - column:
+                  name: external_id
+                  type: varchar(255)
+              - column:
+                  name: title
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: material_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: timestamptz
+              - column:
+                  name: effective_at
+                  type: timestamptz
+              - column:
+                  name: source_url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text_object_key
+                  type: text
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE documents ADD CONSTRAINT chk_documents_material_type CHECK (material_type in ('LEGAL_ACT', 'DRAFT_NPA', 'BILL', 'SPEECH', 'NEWS', 'DATASET', 'OTHER'));
+        - addUniqueConstraint:
+            tableName: documents
+            columnNames: source_id, external_id
+            constraintName: uq_documents_source_external_id
+        - createIndex:
+            tableName: documents
+            indexName: idx_documents_source_id
+            columns:
+              - column:
+                  name: source_id
+        - createIndex:
+            tableName: documents
+            indexName: idx_documents_published_at
+            columns:
+              - column:
+                  name: published_at

@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/1-init-schema.yaml
+  - include:
+      file: db/changelog/2-auth-users.yaml
+  - include:
+      file: db/changelog/3-sources.yaml
+  - include:
+      file: db/changelog/4-documents-raw-snapshots.yaml
+  - include:
+      file: db/changelog/5-topics.yaml
+  - include:
+      file: db/changelog/6-events.yaml
+  - include:
+      file: db/changelog/7-entities.yaml
+  - include:
+      file: db/changelog/8-relations-evidence.yaml
+  - include:
+      file: db/changelog/9-hypotheses-briefs.yaml
+  - include:
+      file: db/changelog/10-review-observability.yaml

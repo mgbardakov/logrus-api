@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/logrus
+    username: logrus
+    password: logrus
+    driver-class-name: org.postgresql.Driver
 
 logging:
   level:

@@ -1,0 +1,184 @@
+databaseChangeLog:
+  - changeSet:
+      id: 8-create-relations
+      author: logrus
+      changes:
+        - createTable:
+            tableName: relations
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: source_event_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_relations_source_event
+                    references: events(id)
+              - column:
+                  name: target_event_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_relations_target_event
+                    references: events(id)
+              - column:
+                  name: relation_class
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: relation_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confidence
+                  type: numeric(5,4)
+              - column:
+                  name: explanation
+                  type: text
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE relations ADD CONSTRAINT chk_relations_relation_class CHECK (relation_class in ('FACTUAL', 'THEMATIC', 'HYPOTHESIS'));
+        - createIndex:
+            tableName: relations
+            indexName: idx_relations_source_event_id
+            columns:
+              - column:
+                  name: source_event_id
+        - createIndex:
+            tableName: relations
+            indexName: idx_relations_target_event_id
+            columns:
+              - column:
+                  name: target_event_id
+
+  - changeSet:
+      id: 8-create-relation-topic-scores
+      author: logrus
+      changes:
+        - createTable:
+            tableName: relation_topic_scores
+            columns:
+              - column:
+                  name: relation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_relation_topic_scores_relation
+                    references: relations(id)
+              - column:
+                  name: topic_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_relation_topic_scores_topic
+                    references: topics(id)
+              - column:
+                  name: score
+                  type: numeric(5,4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: relation_topic_scores
+            columnNames: relation_id, topic_id
+            constraintName: pk_relation_topic_scores
+
+  - changeSet:
+      id: 8-create-evidence
+      author: logrus
+      changes:
+        - createTable:
+            tableName: evidence
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: target_type
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_evidence_document
+                    references: documents(id)
+              - column:
+                  name: source_url
+                  type: text
+              - column:
+                  name: quote
+                  type: text
+              - column:
+                  name: summary
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE evidence ADD CONSTRAINT chk_evidence_target_type CHECK (target_type in ('EVENT', 'RELATION', 'HYPOTHESIS', 'BRIEF'));
+        - createIndex:
+            tableName: evidence
+            indexName: idx_evidence_target
+            columns:
+              - column:
+                  name: target_type
+              - column:
+                  name: target_id

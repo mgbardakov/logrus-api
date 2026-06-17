@@ -1,0 +1,129 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6-create-events
+      author: logrus
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_events_document
+                    references: documents(id)
+              - column:
+                  name: event_type
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: occurred_at
+                  type: timestamptz
+              - column:
+                  name: published_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: summary
+                  type: text
+              - column:
+                  name: region
+                  type: varchar(128)
+              - column:
+                  name: reliability
+                  type: numeric(5,4)
+              - column:
+                  name: confidence
+                  type: numeric(5,4)
+              - column:
+                  name: metadata
+                  type: jsonb
+                  defaultValueComputed: "'{}'::jsonb"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE events ADD CONSTRAINT chk_events_event_type CHECK (event_type in ('LEGAL_ACT_PUBLISHED', 'DRAFT_NPA_CREATED', 'BILL_CHANGED', 'GOVERNMENT_DECISION', 'SPEECH_PUBLISHED', 'AGENCY_CLARIFICATION', 'LABOR_MARKET_DATA', 'BUDGET_ACTIVITY', 'INSPECTION_ACTIVITY', 'OTHER'));
+        - createIndex:
+            tableName: events
+            indexName: idx_events_document_id
+            columns:
+              - column:
+                  name: document_id
+        - createIndex:
+            tableName: events
+            indexName: idx_events_published_at
+            columns:
+              - column:
+                  name: published_at
+
+  - changeSet:
+      id: 6-create-event-topics
+      author: logrus
+      changes:
+        - createTable:
+            tableName: event_topics
+            columns:
+              - column:
+                  name: event_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_event_topics_event
+                    references: events(id)
+              - column:
+                  name: topic_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_event_topics_topic
+                    references: topics(id)
+              - column:
+                  name: score
+                  type: numeric(5,4)
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: event_topics
+            columnNames: event_id, topic_id
+            constraintName: pk_event_topics
+        - createIndex:
+            tableName: event_topics
+            indexName: idx_event_topics_topic_id
+            columns:
+              - column:
+                  name: topic_id
