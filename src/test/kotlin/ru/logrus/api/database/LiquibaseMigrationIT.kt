@@ -8,18 +8,13 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
-import java.sql.DriverManager
+import ru.logrus.api.BaseIT
 
-@Testcontainers
-class LiquibaseMigrationTest {
+class LiquibaseMigrationIT : BaseIT() {
 
     @Test
     fun `liquibase applies all migrations idempotently on clean database`() {
-        DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password).use { connection ->
+        getConnection().use { connection ->
             val database = DatabaseFactory.getInstance()
                 .findCorrectDatabaseImplementation(JdbcConnection(connection))
             val liquibase = Liquibase(
@@ -54,22 +49,7 @@ class LiquibaseMigrationTest {
         }
     }
 
-    class PgVectorContainer(
-        imageName: DockerImageName,
-    ) : PostgreSQLContainer<PgVectorContainer>(imageName)
-
     companion object {
-        private val pgVectorImage = DockerImageName
-            .parse("pgvector/pgvector:pg16")
-            .asCompatibleSubstituteFor("postgres")
-
-        @Container
-        @JvmStatic
-        val postgres = PgVectorContainer(pgVectorImage)
-            .withDatabaseName("logrus")
-            .withUsername("logrus")
-            .withPassword("logrus")
-
         private val expectedTables = setOf(
             "analytical_hypotheses",
             "briefs",

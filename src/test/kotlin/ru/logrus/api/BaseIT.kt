@@ -1,21 +1,19 @@
-package ru.logrus.api.database
+package ru.logrus.api
 
-import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import java.sql.Connection
+import java.sql.DriverManager
 
 @Testcontainers
-@SpringBootTest
-class LogrusApiDatabaseApplicationTest {
+abstract class BaseIT {
 
-    @Test
-    fun `application context starts with liquibase enabled`() {
-    }
+    protected fun getConnection(): Connection =
+        DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password)
 
     class PgVectorContainer(
         imageName: DockerImageName,
